@@ -3895,6 +3895,15 @@ async def _run_migrations(conn):
     # Migration: Add filament_overrides column to print_queue for filament override in model-based assignment
     await _safe_execute(conn, "ALTER TABLE print_queue ADD COLUMN filament_overrides TEXT")
 
+    # TPU Feed Assist POC: distinguish ESP32 feeders from legacy SpoolBuddy Pi stations.
+    # Idempotent on SQLite/PostgreSQL via _safe_execute. Existing devices default
+    # to spoolbuddy_station; no data or existing NFC/scale records are removed.
+    await _safe_execute(
+        conn,
+        "ALTER TABLE spoolbuddy_devices ADD COLUMN device_type "
+        "VARCHAR(32) NOT NULL DEFAULT 'spoolbuddy_station'",
+    )
+
     # Migration: Add NFC reader and display control columns to spoolbuddy_devices
     await _safe_execute(conn, "ALTER TABLE spoolbuddy_devices ADD COLUMN nfc_reader_type VARCHAR(20)")
     await _safe_execute(conn, "ALTER TABLE spoolbuddy_devices ADD COLUMN nfc_connection VARCHAR(20)")
