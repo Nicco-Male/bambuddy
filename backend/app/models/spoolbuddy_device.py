@@ -16,6 +16,11 @@ class SpoolBuddyDevice(Base):
     hostname: Mapped[str] = mapped_column(String(100))
     ip_address: Mapped[str] = mapped_column(String(45))
     firmware_version: Mapped[str | None] = mapped_column(String(20))
+    # Preserve legacy Pi stations; XIAO feeders report their kind on registration.
+    device_type: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="spoolbuddy_station",
+        server_default="spoolbuddy_station",
+    )
     has_nfc: Mapped[bool] = mapped_column(Boolean, default=True)
     has_scale: Mapped[bool] = mapped_column(Boolean, default=True)
     tare_offset: Mapped[int] = mapped_column(Integer, default=0)

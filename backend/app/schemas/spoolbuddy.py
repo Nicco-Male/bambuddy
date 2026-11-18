@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -11,6 +12,7 @@ class DeviceRegisterRequest(BaseModel):
     hostname: str = Field(..., min_length=1, max_length=100)
     ip_address: str = Field(..., min_length=1, max_length=45)
     firmware_version: str | None = Field(None, max_length=20)
+    device_type: Literal["spoolbuddy_station", "tpu_feed_assist"] = "spoolbuddy_station"
     has_nfc: bool = True
     has_scale: bool = True
     tare_offset: int = 0
@@ -27,6 +29,7 @@ class DeviceResponse(BaseModel):
     hostname: str
     ip_address: str
     firmware_version: str | None = None
+    device_type: Literal["spoolbuddy_station", "tpu_feed_assist"] = "spoolbuddy_station"
     has_nfc: bool
     has_scale: bool
     tare_offset: int

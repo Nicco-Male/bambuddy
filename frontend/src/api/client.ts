@@ -9561,6 +9561,7 @@ export interface SpoolBuddyDevice {
   device_id: string;
   hostname: string;
   ip_address: string;
+  device_type: 'spoolbuddy_station' | 'tpu_feed_assist';
   backend_url?: string | null;
   firmware_version: string | null;
   has_nfc: boolean;
