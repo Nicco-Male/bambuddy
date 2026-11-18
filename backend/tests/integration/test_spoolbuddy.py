@@ -2903,3 +2903,83 @@ class TestSpoolmanClientOrNoneGraceful:
         assert resp.status_code == 200
         data = resp.json()
         assert data["matched"] is False
+
+
+# ============================================================================
+# TPU Feed Assist XIAO — typed SpoolBuddy device regression tests
+# ============================================================================
+
+
+class TestTypedTpuFeederDevices:
+    @pytest.mark.asyncio
+    @pytest.mark.integration
+    async def test_feeder_register_and_heartbeat(self, async_client: AsyncClient):
+        """A XIAO feeder is online in SpoolBuddy without pretending to have NFC/scale."""
+        payload = {
+            "device_id": "tpu-x1c-test",
+            "hostname": "TPU Feed Assist - X1C",
+            "ip_address": "192.168.10.230",
+            "firmware_version": "0.3.0-prototype",
+            "device_type": "tpu_feed_assist",
+            "has_nfc": False,
+            "has_scale": False,
+        }
+        with patch("backend.app.api.routes.spoolbuddy.ws_manager") as mock_ws:
+            mock_ws.broadcast = AsyncMock()
+            reg = await async_client.post(f"{API}/devices/register", json=payload)
+            assert reg.status_code == 200, reg.text
+            assert reg.json()["device_type"] == "tpu_feed_assist"
+            assert reg.json()["has_nfc"] is False
+            assert reg.json()["has_scale"] is False
+
+            hb = await async_client.post(
+                f"{API}/devices/tpu-x1c-test/heartbeat",
+                json={
+                    "uptime_s": 75,
+                    "nfc_ok": False,
+                    "scale_ok": False,
+                    "firmware_version": "0.3.0-prototype",
+                },
+            )
+            assert hb.status_code == 200, hb.text
+
+            devices = await async_client.get(f"{API}/devices")
+            assert devices.status_code == 200, devices.text
+            found = next(
+                d for d in devices.json() if d["device_id"] == "tpu-x1c-test"
+            )
+            assert found["device_type"] == "tpu_feed_assist"
+            assert found["online"] is True
+            assert found["uptime_s"] == 75
+
+    @pytest.mark.asyncio
+    @pytest.mark.integration
+    async def test_legacy_registration_remains_pi_station(self, async_client: AsyncClient):
+        with patch("backend.app.api.routes.spoolbuddy.ws_manager") as mock_ws:
+            mock_ws.broadcast = AsyncMock()
+            resp = await async_client.post(
+                f"{API}/devices/register",
+                json={
+                    "device_id": "legacy-spoolbuddy-test",
+                    "hostname": "spoolbuddy-station",
+                    "ip_address": "192.168.10.231",
+                },
+            )
+        assert resp.status_code == 200, resp.text
+        assert resp.json()["device_type"] == "spoolbuddy_station"
+        assert resp.json()["has_nfc"] is True
+        assert resp.json()["has_scale"] is True
+
+    @pytest.mark.asyncio
+    @pytest.mark.integration
+    async def test_device_type_whitelist_rejects_unknown_type(self, async_client: AsyncClient):
+        resp = await async_client.post(
+            f"{API}/devices/register",
+            json={
+                "device_id": "fake-tpu",
+                "hostname": "invalid-type",
+                "ip_address": "192.168.10.232",
+                "device_type": "printer",
+            },
+        )
+        assert resp.status_code == 422
