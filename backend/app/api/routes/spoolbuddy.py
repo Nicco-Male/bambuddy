@@ -161,6 +161,7 @@ def _device_to_response(device: SpoolBuddyDevice) -> DeviceResponse:
         hostname=device.hostname,
         ip_address=device.ip_address,
         firmware_version=device.firmware_version,
+        device_type=device.device_type,
         has_nfc=device.has_nfc,
         has_scale=device.has_scale,
         tare_offset=device.tare_offset,
@@ -217,6 +218,7 @@ async def register_device(
         device.hostname = req.hostname
         device.ip_address = req.ip_address
         device.firmware_version = req.firmware_version
+        device.device_type = req.device_type
         device.has_nfc = req.has_nfc
         device.has_scale = req.has_scale
         device.nfc_reader_type = req.nfc_reader_type
@@ -236,6 +238,7 @@ async def register_device(
             hostname=req.hostname,
             ip_address=req.ip_address,
             firmware_version=req.firmware_version,
+            device_type=req.device_type,
             has_nfc=req.has_nfc,
             has_scale=req.has_scale,
             tare_offset=req.tare_offset,
