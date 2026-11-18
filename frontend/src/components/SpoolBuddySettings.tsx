@@ -82,6 +82,43 @@ function DeviceCard({ device, onUnregister, isDeleting }: DeviceCardProps) {
     }
   };
 
+  // A TPU feeder is an ESP32 accessory, NOT a Raspberry Pi SpoolBuddy kiosk.
+  // Never show SSH/Linux update/reboot/NFC/scale actions on this device type.
+  // Button actuation comes in a later safety-gated proof of concept.
+  if (device.device_type === 'tpu_feed_assist') {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base font-semibold text-white">{device.hostname}</h3>
+              <p className="text-xs text-bambu-gray">TPU Feed Assist · XIAO ESP32-S3</p>
+            </div>
+            <span className={online ? 'text-green-400 text-xs' : 'text-gray-400 text-xs'}>
+              {online ? t('settings.spoolbuddy.online') : t('settings.spoolbuddy.offline')}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div><div className="text-bambu-gray">IP</div><div className="text-white font-mono">{device.ip_address}</div></div>
+            <div><div className="text-bambu-gray">{t('settings.spoolbuddy.firmware')}</div><div className="text-white">{device.firmware_version ?? '—'}</div></div>
+            <div><div className="text-bambu-gray">Device ID</div><div className="text-white font-mono">{device.device_id}</div></div>
+            <div><div className="text-bambu-gray">{t('settings.spoolbuddy.lastSeen')}</div><div className="text-white">{device.last_seen ? formatRelativeTime(device.last_seen) : '—'}</div></div>
+          </div>
+          <div className="rounded-lg border border-bambu-dark-tertiary p-3 text-xs text-bambu-gray">
+            Proof of concept: registration and heartbeat only. FEED and FORCE controls are withheld until printer-idle interlocking and physical bench tests are completed. Automatic UNLOAD / AMS swaps are not supported.
+          </div>
+          <Button variant="danger" size="sm" onClick={() => onUnregister(device)}
+                  disabled={isDeleting}>
+            <Trash2 className="w-3.5 h-3.5" />
+            {t('settings.spoolbuddy.unregister')}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const actions: { key: ActionKey; label: string; icon: typeof Download; variant?: 'danger' }[] = [
     { key: 'update', label: t('settings.spoolbuddy.update'), icon: Download },
     { key: 'restart_browser', label: t('settings.spoolbuddy.restartBrowser'), icon: Monitor },
