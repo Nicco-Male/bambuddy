@@ -1,0 +1,22 @@
+# Isolated local-only proof-of-concept; no production volumes, no host networking.
+# Usage: docker compose -f docker-compose.tpu-poc.yml -p bambuddy-tpu-poc up -d --build
+# WARNING: Use a staging host or trusted private LAN. Do not expose port 18080 publicly.
+services:
+  bambuddy-tpu-poc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bambuddy-tpu-poc:local
+    container_name: bambuddy-tpu-poc
+    restart: unless-stopped
+    ports:
+      - "18080:8000"
+    environment:
+      - DATA_DIR=/app/data
+    volumes:
+      - tpu_poc_data:/app/data
+      - tpu_poc_logs:/app/logs
+
+volumes:
+  tpu_poc_data:
+  tpu_poc_logs:
